@@ -1,0 +1,24 @@
+#!/bin/bash 
+#created at 3/15/2013 
+MAILHOST=gwt0411@sina.com
+MAIL="/bin/mail"
+HOSTNAME=`hostname`
+paste=/usr/bin/paste
+#FILESIZE=`du -sh /tmp/cpu.txt`
+STOREPATH=/usr/local/share/UBS/ubsmount/ubsLogNReports/zipped_log/kabini_cpu_moitor/
+DATE=`date|cut -d ' ' -f 1`
+date > /tmp/datetime-cpu.txt    
+top -b -n 1 | grep Cpu  > /tmp/cpu-now.txt 
+top -b -n 1 | grep Mem  >> /tmp/cpu-now.txt 
+paste  /tmp/datetime-cpu.txt   /tmp/cpu-now.txt  >> /tmp/cpu.txt
+FILESIZE=`du -s /tmp/cpu.txt|cut -f 1`
+if [[ $FILESIZE -gt 5 ]]
+       then mv /tmp/cpu.txt $STOREPATH$DATE
+fi
+cpu_usage=`top -b -n 1 | grep Cpu | gawk  '{print $2}' |cut -f 1 -d "."`
+if [[ $cpu_usage -gt 30 ]]
+   then
+       echo "$HOSTNAME Alarm, the cpu_usage over 30 percent" |${MAIL} -s "Looks like there is a abnormal issue" ${MAILHOST}
+   else 
+       echo "Looks like no execption,cpu_usage no exceed 30 percent."
+fi
